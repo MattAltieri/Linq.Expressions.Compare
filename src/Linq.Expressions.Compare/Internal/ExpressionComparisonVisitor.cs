@@ -31,8 +31,9 @@ namespace Linq.Expressions.Compare.Internal {
 
             currentNode = comparisonCandidates.Count == 0 ? null : comparisonCandidates.Peek();
             if (currentNode == null ||
-                currentNode.NodeType != node.NodeType ||
-                currentNode.Type != node.Type) {
+                // currentNode.NodeType != node.NodeType ||
+                // currentNode.Type != node.Type) {
+                !CompareExpressionTypes(currentNode, node)) {
                 
                 AreEqual = false;
                 return node;
@@ -47,9 +48,12 @@ namespace Linq.Expressions.Compare.Internal {
 
             BinaryExpression candidate = (BinaryExpression)currentNode;
 
-            if (node.Method != candidate.Method ||
-                node.IsLifted != candidate.IsLifted ||
-                node.IsLiftedToNull != candidate.IsLiftedToNull) {
+            // if (node.Method != candidate.Method ||
+            //     node.IsLifted != candidate.IsLifted ||
+            //     node.IsLiftedToNull != candidate.IsLiftedToNull) {
+            if (!Compare(node.Method, candidate.Method) ||
+                !Compare(node.IsLifted, candidate.IsLifted) ||
+                !Compare(node.IsLiftedToNull, candidate.IsLiftedToNull)) {
                 
                 AreEqual = false;
                 return node;
@@ -60,7 +64,8 @@ namespace Linq.Expressions.Compare.Internal {
 
         protected override Expression VisitConstant(ConstantExpression node) {
 
-            if (node.Value != ((ConstantExpression)currentNode).Value) {
+            // if (node.Value != ((ConstantExpression)currentNode).Value) {
+            if (!Compare(node.Value, ((ConstantExpression)currentNode).Value)) {
                 AreEqual = false;
                 return node;
             }
@@ -70,7 +75,8 @@ namespace Linq.Expressions.Compare.Internal {
 
         protected override Expression VisitMember(MemberExpression node) {
 
-            if (node.Member != ((MemberExpression)currentNode).Member) {
+            // if (node.Member != ((MemberExpression)currentNode).Member) {
+            if (!Compare(node.Member, ((MemberExpression)currentNode).Member)) {
                 AreEqual = false;
                 return node;
             }
@@ -80,7 +86,8 @@ namespace Linq.Expressions.Compare.Internal {
 
         protected override Expression VisitMethodCall(MethodCallExpression node) {
 
-            if (node.Method != ((MethodCallExpression)currentNode).Method) {
+            // if (node.Method != ((MethodCallExpression)currentNode).Method) {
+            if (!Compare(node.Method, ((MethodCallExpression)currentNode).Method)) {
                 AreEqual = false;
                 return node;
             }
@@ -90,7 +97,8 @@ namespace Linq.Expressions.Compare.Internal {
 
         protected override Expression VisitParameter(ParameterExpression node) {
 
-            if (node.Name != ((ParameterExpression)currentNode).Name) {
+            // if (node.Name != ((ParameterExpression)currentNode).Name) {
+            if (!Compare(node.Name, ((ParameterExpression)currentNode).Name)) {
                 AreEqual = false;
                 return node;
             }
@@ -100,7 +108,8 @@ namespace Linq.Expressions.Compare.Internal {
 
         protected override Expression VisitTypeBinary(TypeBinaryExpression node) {
 
-            if (node.TypeOperand != ((TypeBinaryExpression)currentNode).TypeOperand) {
+            // if (node.TypeOperand != ((TypeBinaryExpression)currentNode).TypeOperand) {
+            if (!Compare(node.TypeOperand, ((TypeBinaryExpression)currentNode).TypeOperand)) {
                 AreEqual = false;
                 return node;
             }
@@ -112,9 +121,12 @@ namespace Linq.Expressions.Compare.Internal {
 
             UnaryExpression candidate = (UnaryExpression)currentNode;
 
-            if (node.Method != candidate.Method ||
-                node.IsLifted != candidate.IsLifted ||
-                node.IsLiftedToNull != candidate.IsLiftedToNull) {
+            // if (node.Method != candidate.Method ||
+            //     node.IsLifted != candidate.IsLifted ||
+            //     node.IsLiftedToNull != candidate.IsLiftedToNull) {
+            if (!Compare(node.Method, candidate.Method) ||
+                !Compare(node.IsLifted, candidate.IsLifted) ||
+                !Compare(node.IsLiftedToNull, candidate.IsLiftedToNull)) {
                 
                 AreEqual = false;
                 return node;
@@ -127,7 +139,8 @@ namespace Linq.Expressions.Compare.Internal {
 
             NewExpression candidate = (NewExpression)currentNode;
 
-            if (node.Constructor != candidate.Constructor) {
+            // if (node.Constructor != candidate.Constructor) {
+            if (!Compare(node.Constructor, candidate.Constructor)) {
                 AreEqual = false;
                 return node;
             }
@@ -141,13 +154,25 @@ namespace Linq.Expressions.Compare.Internal {
             }
 
             for (int i = 0; i < (nodeMembers?.Count ?? 0); i++) {
-                if (nodeMembers[i] != candidateMembers[i]) {
+                // if (nodeMembers[i] != candidateMembers[i]) {
+                if (!Compare(nodeMembers[i], candidateMembers[i])) {
                     AreEqual = false;
                     return node;
                 }
             }
 
             return base.VisitNew(node);
+        }
+        #endregion
+
+        #region Helper Methods
+        private bool Compare<T>(T left, T right)
+            => EqualityComparer<T>.Default.Equals(left, right);
+
+        private bool CompareExpressionTypes(Expression left, Expression right) {
+            if (!Compare(left.NodeType, right.NodeType)) return false;
+            if (!Compare(left.Type, right.Type)) return false;
+            return true;
         }
         #endregion
     }
