@@ -1,5 +1,8 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -166,8 +169,19 @@ namespace Linq.Expressions.Compare.Internal {
         #endregion
 
         #region Helper Methods
-        private bool Compare<T>(T left, T right)
-            => EqualityComparer<T>.Default.Equals(left, right);
+        private bool Compare<T>(T left, T right) {
+            if (typeof(T).IsAssignableFrom(typeof(IEnumerable)) && typeof(T) != typeof(string)) {
+                MethodInfo sequenceEqual = typeof(Enumerable)
+                    .GetMethods(BindingFlags.Public | BindingFlags.Static)
+                    .Where(m => m.Name == "SequenceEqual")
+                    .Where(m => m.GetParameters().Count() == 2)
+                    .First()
+                    .MakeGenericMethod(left.GetType().GetElementType());
+                return (bool)sequenceEqual.Invoke(null, new object[] { left, right });
+            }
+
+            return EqualityComparer<T>.Default.Equals(left, right);
+        }
 
         private bool CompareExpressionTypes(Expression left, Expression right) {
             if (!Compare(left.NodeType, right.NodeType)) return false;

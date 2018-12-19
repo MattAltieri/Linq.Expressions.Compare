@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using Linq.Expressions.Compare.Test;
 using Xunit;
@@ -7,6 +8,9 @@ using Xunit2.Should;
 
 namespace Linq.Expressions.Compare.Internal {
     public class ExpressionComparisonVisitorTest {
+
+        private static IEnumerable<int> testInts1 = new[] { 1, 2, 3 };
+        private static IEnumerable<int> testInts2 = new[] { 1, 2, 3 };
 
         #region Tests
         [Fact]
@@ -139,6 +143,16 @@ namespace Linq.Expressions.Compare.Internal {
                     Expression.Constant(900 - 400),
                     false,
                 },
+                new object[] {
+                    Expression.Constant(testInts1),
+                    Expression.Constant(testInts2),
+                    true,
+                },
+                new object[] {
+                    Expression.Constant(testInts1),
+                    Expression.Constant(testInts2.Take(2)),
+                    false,
+                }
             };
 
         public static List<object[]> GetPropertyMemberExpressionTestData
