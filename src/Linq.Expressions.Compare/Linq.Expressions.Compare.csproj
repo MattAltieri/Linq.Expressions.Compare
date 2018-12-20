@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <IsPackable>true</IsPackable>
-    <Version>1.0.2</Version>
+    <Version>1.0.3</Version>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>Linq.Expressions.Compare.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>

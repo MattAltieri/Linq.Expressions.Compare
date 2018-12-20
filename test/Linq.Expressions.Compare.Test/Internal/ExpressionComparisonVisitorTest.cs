@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using Linq.Expressions.Compare.Test;
 using Xunit;
 using Xunit2.Should;
@@ -11,6 +12,8 @@ namespace Linq.Expressions.Compare.Internal {
 
         private static IEnumerable<int> testInts1 = new[] { 1, 2, 3 };
         private static IEnumerable<int> testInts2 = new[] { 1, 2, 3 };
+        private static ParameterExpression paramMockObjectA = Expression.Parameter(typeof(MockObjectA), "f");
+        private static ParameterExpression paramMockObjectB = Expression.Parameter(typeof(MockObjectB), "f");
 
         #region Tests
         [Fact]
@@ -697,6 +700,71 @@ namespace Linq.Expressions.Compare.Internal {
                     (Expression<Func<MockObjectA, bool>>)(x => true && ( x.Name != "Bacon" || x.Id + 2 == 3 )),
                     false,
                 },
+                new object[] {
+                    Expression.Lambda<Func<MockObjectA, bool>>(
+                        Expression.AndAlso(
+                            Expression.AndAlso(
+                                Expression.Constant(true),
+                                Expression.GreaterThan(
+                                    Expression.MakeMemberAccess(
+                                        paramMockObjectA,
+                                        typeof(MockObjectA).GetProperty("Id")
+                                    ),
+                                    Expression.Constant(2)
+                                )
+                            ),
+                            Expression.GreaterThan(
+                                Expression.Call(
+                                    Expression.Constant("B"),
+                                    typeof(string).GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                                        .Where(m => m.Name == "CompareTo")
+                                        .Where(m => m.GetParameters()[0].ParameterType == typeof(string))
+                                        .First(),
+                                        new Expression[] {
+                                            Expression.MakeMemberAccess(
+                                                paramMockObjectA,
+                                                typeof(MockObjectA).GetProperty("Name")
+                                            )
+                                        }
+                                ),
+                                Expression.Constant(0)
+                            )
+                        ),
+                        paramMockObjectA
+                    ),
+                    Expression.Lambda<Func<MockObjectA, bool>>(
+                        Expression.AndAlso(
+                            Expression.AndAlso(
+                                Expression.Constant(true),
+                                Expression.GreaterThan(
+                                    Expression.MakeMemberAccess(
+                                        paramMockObjectA,
+                                        typeof(MockObjectA).GetProperty("Id")
+                                    ),
+                                    Expression.Constant(2)
+                                )
+                            ),
+                            Expression.GreaterThan(
+                                Expression.Call(
+                                    Expression.Constant("B"),
+                                    typeof(string).GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                                        .Where(m => m.Name == "CompareTo")
+                                        .Where(m => m.GetParameters()[0].ParameterType == typeof(string))
+                                        .First(),
+                                        new Expression[] {
+                                            Expression.MakeMemberAccess(
+                                                paramMockObjectA,
+                                                typeof(MockObjectA).GetProperty("Name")
+                                            )
+                                        }
+                                ),
+                                Expression.Constant(0)
+                            )
+                        ),
+                        paramMockObjectA
+                    ),
+                    true,
+                }
             };
         #endregion
 

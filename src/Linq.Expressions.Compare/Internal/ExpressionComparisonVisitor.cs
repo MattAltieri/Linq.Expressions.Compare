@@ -170,7 +170,12 @@ namespace Linq.Expressions.Compare.Internal {
 
         #region Helper Methods
         private bool Compare<T>(T left, T right) {
-            if (typeof(T).IsAssignableFrom(typeof(IEnumerable)) && typeof(T) != typeof(string)) {
+            if (ReferenceEquals(left, right)) return true;
+            if (ReferenceEquals(null, left)) return false;
+
+            if (typeof(IEnumerable).IsAssignableFrom(left.GetType()) &&
+                left.GetType() != typeof(string)) {
+
                 MethodInfo sequenceEqual = typeof(Enumerable)
                     .GetMethods(BindingFlags.Public | BindingFlags.Static)
                     .Where(m => m.Name == "SequenceEqual")
