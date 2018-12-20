@@ -1,0 +1,45 @@
+image: microsoft/dotnet:latest
+
+variables:
+  GIT_STRATEGY: fetch
+
+stages:
+  - build
+  - test
+  - int
+  - deploy
+
+before_script:
+  - 'nuget restore -source "https://api.nuget.org/v3/index.json;http://sssnuget/nuget"'
+  - 'dotnet restore'
+
+build:
+  stage: build
+  script:
+    - 'dotnet build'
+    
+test:
+  stage: test
+  script:
+    - 'dotnet test test\Linq.Expressions.Compare.Test'
+    
+int:
+  stage: int
+  variables:
+    GIT_STRATEGY: clone
+  script:
+    - 'git checkout master'
+    - 'git pull'
+    - 'git merge origin/%CI_COMMIT_REF_NAME%'
+    - 'dotnet build'
+    - 'dotnet test test\Linq.Expressions.Compare.Test'
+  except:
+    - master
+    
+deploy:
+  stage: deploy
+  script:
+    - 'dotnet pack --configuration Release .\src\Linq.Expressions.Compare\Linq.Expressions.Compare.csproj'
+    - 'nuget push .\src\Linq.Expressions.Compare\bin\Release\*.nupkg 3a2fd15c-539f-412d-8cab-014ccc3afa72 -Source http://sssnuget/nuget'
+  only:
+    - master
